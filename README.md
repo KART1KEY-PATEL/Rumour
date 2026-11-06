@@ -16,7 +16,7 @@ No phone numbers, usernames, or complicated registration process. Just a room co
 
 You can install Rumour directly using the APK available in the GitHub Releases section.
 
-1. Visit the [Rumour Releases](https://github.com/YOUR_USERNAME/YOUR_REPOSITORY/releases/latest) page.
+1. Visit the [Rumour Releases](https://github.com/KART1KEY-PATEL/Rumour/releases/tag/v1.0) page.
 2. Download the latest `app-release.apk` file.
 3. Open the downloaded APK on your Android device.
 4. If prompted, allow installation from unknown sources for your browser or file manager.
@@ -24,7 +24,7 @@ You can install Rumour directly using the APK available in the GitHub Releases s
 
 > **Note:** Android may display a security warning when installing an APK downloaded outside the Play Store. Only install APKs from a release published by the repository owner.
 
-**Download:** [Get the latest Android APK](https://github.com/YOUR_USERNAME/YOUR_REPOSITORY/releases/latest)
+**Download:** [Get the latest Android APK](https://github.com/KART1KEY-PATEL/Rumour/releases/tag/v1.0)
 
 ---
 
@@ -336,7 +336,7 @@ export PATH="$PATH:$HOME/.pub-cache/bin"
 Clone the project:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+git clone https://github.com/KART1KEY-PATEL/Rumour
 ```
 
 Navigate into the project directory:
