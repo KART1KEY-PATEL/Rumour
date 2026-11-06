@@ -9,6 +9,14 @@ Every participant gets a randomly generated anonymous identity, such as **Brave 
 No phone numbers, usernames, or complicated registration process. Just a room code and a conversation.
 
 ---
+## 🎬 App Demo
+
+Here's a complete walkthrough of Rumour, showing the app screens,
+room creation, anonymous identity generation, and realtime messaging.
+
+
+https://github.com/user-attachments/assets/cad67699-82f6-44b4-9051-a9af028f5fd3
+
 
 ## 📲 Installation
 
