@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Wraps [child] with a subtle scale-down on press — a lightweight press
-/// micro-interaction for custom (non-Material-button) tappable widgets.
 class PressableScale extends StatefulWidget {
   const PressableScale({
     super.key,

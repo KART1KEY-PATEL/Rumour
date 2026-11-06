@@ -28,12 +28,12 @@ class AppColors extends ThemeExtension<AppColors> {
 
   static const dark = AppColors(
     background: Color(0xFF0A0A0C),
-    surface: Color(0xFF17171C),
-    surfaceVariant: Color(0xFF26262C),
+    surface: Color.fromRGBO(17, 24, 39, 0.8),
+    surfaceVariant:Color.fromRGBO(17, 24, 39, 0.8),
     accent: Color(0xFFBFFF3D),
     onAccent: Color(0xFF101204),
     textPrimary: Color(0xFFF5F5F7),
-    textSecondary: Color(0xFF9A9AA4),
+    textSecondary: Color(0xFFD1D5DB),
     bubbleIncoming: Color(0xFF1E2028),
     dateChip: Color(0xFF1C1C21),
     error: Color(0xFFFF6B6B),

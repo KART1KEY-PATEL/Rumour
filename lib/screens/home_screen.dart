@@ -37,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       await Navigator.of(context).push(
         AppPageRoute(
-          builder: (_) =>
-              IdentityRevealScreen(roomCode: code, identity: identity),
+          builder:
+              (_) => IdentityRevealScreen(roomCode: code, identity: identity),
         ),
       );
     } catch (_) {
@@ -114,16 +114,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton(
-                      onPressed: _creating
-                          ? null
-                          : () => Navigator.of(context).push(
-                              AppPageRoute(
-                                builder: (_) => const JoinRoomScreen(),
+                      onPressed:
+                          _creating
+                              ? null
+                              : () => Navigator.of(context).push(
+                                AppPageRoute(
+                                  builder: (_) => const JoinRoomScreen(),
+                                ),
                               ),
-                            ),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: colors.surfaceVariant),
-                        shape: const StadiumBorder(),
+
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
                       ),
                       child: Text(
                         'Join a Room',
@@ -147,22 +151,76 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _YourChatsEntry extends StatelessWidget {
+class _YourChatsEntry extends StatefulWidget {
   const _YourChatsEntry({required this.onTap});
 
   final VoidCallback onTap;
 
   @override
+  State<_YourChatsEntry> createState() => _YourChatsEntryState();
+}
+
+class _YourChatsEntryState extends State<_YourChatsEntry> {
+  Stream<List<JoinedRoom>>? _roomsStream;
+  String? _currentUid;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final uid = context.watch<AuthService>().uid;
+
+    if (uid != _currentUid) {
+      _currentUid = uid;
+
+      _roomsStream =
+          uid == null
+              ? null
+              : context.read<RoomService>().joinedRoomsStream(uid);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final uid = context.watch<AuthService>().uid;
-    if (uid == null) return const SizedBox.shrink();
+
+    if (_roomsStream == null) {
+      return const SizedBox.shrink();
+    }
 
     return StreamBuilder<List<JoinedRoom>>(
-      stream: context.read<RoomService>().joinedRoomsStream(uid),
+      stream: _roomsStream,
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          debugPrint('YOUR CHATS ERROR: ${snapshot.error}');
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Could not load your chats. Check connection.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colors.error),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         final rooms = snapshot.data ?? const <JoinedRoom>[];
-        if (rooms.isEmpty) return const SizedBox.shrink();
+
+        debugPrint('YOUR CHATS COUNT: ${rooms.length}');
+        debugPrint(
+          'YOUR CHATS: ${rooms.map((room) => room.roomCode).toList()}',
+        );
+
+        if (rooms.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -170,10 +228,12 @@ class _YourChatsEntry extends StatelessWidget {
             width: double.infinity,
             height: 56,
             child: OutlinedButton(
-              onPressed: onTap,
+              onPressed: widget.onTap,
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: colors.accent),
-                shape: const StadiumBorder(),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

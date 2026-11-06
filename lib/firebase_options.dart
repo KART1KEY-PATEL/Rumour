@@ -27,14 +27,15 @@ class DefaultFirebaseOptions {
     appId: '1:921465975327:android:ec3eb82dc9818315d51b2a',
     messagingSenderId: '921465975327',
     projectId: 'rumour-87574',
+    databaseURL: 'https://rumour-87574-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'rumour-87574.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAqUNsqCrSxGj4-hHiKQQJ_xDhmJM1Ouco',
     appId: '1:921465975327:ios:ade49214c8fe5239d51b2a',
     messagingSenderId: '921465975327',
     projectId: 'rumour-87574',
+    databaseURL: 'https://rumour-87574-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'rumour-87574.firebasestorage.app',
     iosBundleId: 'com.example.rumour',
   );

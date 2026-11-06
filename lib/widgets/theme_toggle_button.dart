@@ -3,9 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../services/theme_controller.dart';
 
-/// Sun/moon icon button that flips the resolved theme. Reads the *current*
-/// resolved brightness off [Theme.of(context)] rather than [ThemeController]
-/// directly, so it reflects "system" correctly before the user ever taps it.
 class ThemeToggleButton extends StatelessWidget {
   const ThemeToggleButton({super.key});
 

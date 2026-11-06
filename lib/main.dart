@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,22 +17,15 @@ import 'services/notification_service.dart';
 import 'services/room_service.dart';
 import 'services/theme_controller.dart';
 
-const bool kUseFirebaseEmulator = bool.fromEnvironment(
-  'USE_FIREBASE_EMULATOR',
-);
-
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  if (kDebugMode && kUseFirebaseEmulator) {
-    final host = defaultTargetPlatform == TargetPlatform.android
-        ? '10.0.2.2'
-        : 'localhost';
-    await FirebaseAuth.instance.useAuthEmulator(host, 9099);
-    FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
 
   FirebaseFirestore.instance.settings = const Settings(
@@ -61,12 +53,13 @@ class RumourApp extends StatelessWidget {
         Provider(create: (_) => NotificationService()),
         Provider(create: (_) => DeepLinkService(navigatorKey)),
         Provider(
-          create: (context) => MessageWatcherService(
-            roomService: context.read<RoomService>(),
-            chatService: context.read<ChatService>(),
-            notificationService: context.read<NotificationService>(),
-            activeRoomTracker: context.read<ActiveRoomTracker>(),
-          ),
+          create:
+              (context) => MessageWatcherService(
+                roomService: context.read<RoomService>(),
+                chatService: context.read<ChatService>(),
+                notificationService: context.read<NotificationService>(),
+                activeRoomTracker: context.read<ActiveRoomTracker>(),
+              ),
         ),
       ],
       child: Consumer<ThemeController>(

@@ -21,95 +21,112 @@ class MyRoomsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: colors.textPrimary),
-          onPressed: () => Navigator.of(context).maybePop(),
+        leading: InkWell(
+          child: Container(
+            margin: EdgeInsets.all(7),
+
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xff1F2937),
+            ),
+            padding: EdgeInsets.all(2),
+            child: Icon(
+              Icons.chevron_left,
+              color: colors.textPrimary,
+              size: 30,
+            ),
+          ),
+          onTap: () => Navigator.of(context).maybePop(),
         ),
+
         title: Text('Your Chats', style: AppTextStyles.headerTitle(colors)),
         actions: const [ThemeToggleButton()],
       ),
       body: SafeArea(
-        child: uid == null
-            ? const _EmptyState(
-                message: 'Sign-in is still in progress. Please try again.',
-              )
-            : StreamBuilder<List<JoinedRoom>>(
-                stream: roomService.joinedRoomsStream(uid),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting &&
-                      !snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(color: colors.accent),
-                    );
-                  }
-                  final rooms = snapshot.data ?? const <JoinedRoom>[];
-                  if (rooms.isEmpty) {
-                    return const _EmptyState(
-                      message:
-                          'No chats yet. Create or join a room to get started.',
-                    );
-                  }
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: rooms.length,
-                    separatorBuilder: (_, __) => Divider(
-                      color: colors.surfaceVariant,
-                      height: 1,
-                      indent: 20,
-                      endIndent: 20,
-                    ),
-                    itemBuilder: (context, index) {
-                      final room = rooms[index];
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
-                        ),
-                        leading: CircleAvatar(
-                          radius: 22,
-                          backgroundColor: colors.surface,
-                          child: Text(
-                            room.displayName.isNotEmpty
-                                ? room.displayName[0]
-                                : '?',
-                            style: TextStyle(
-                              color: colors.accent,
-                              fontWeight: FontWeight.w700,
-                            ),
+        child:
+            uid == null
+                ? const _EmptyState(
+                  message: 'Sign-in is still in progress. Please try again.',
+                )
+                : StreamBuilder<List<JoinedRoom>>(
+                  stream: roomService.joinedRoomsStream(uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(color: colors.accent),
+                      );
+                    }
+                    final rooms = snapshot.data ?? const <JoinedRoom>[];
+                    if (rooms.isEmpty) {
+                      return const _EmptyState(
+                        message:
+                            'No chats yet. Create or join a room to get started.',
+                      );
+                    }
+                    return ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: rooms.length,
+                      separatorBuilder:
+                          (_, __) => Divider(
+                            color: colors.surfaceVariant,
+                            height: 1,
+                            indent: 20,
+                            endIndent: 20,
                           ),
-                        ),
-                        title: Text(
-                          'Room #${room.roomCode}',
-                          style: AppTextStyles.headerTitle(
-                            colors,
-                          ).copyWith(fontSize: 16),
-                        ),
-                        subtitle: Text(
-                          'You are ${room.displayName}',
-                          style: AppTextStyles.subtitle(
-                            colors,
-                          ).copyWith(fontSize: 13),
-                        ),
-                        trailing: Text(
-                          '${formatDateSeparator(room.lastVisitedAt)}\n${formatMessageTime(room.lastVisitedAt)}',
-                          textAlign: TextAlign.right,
-                          style: AppTextStyles.timestamp(colors),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            AppPageRoute(
-                              builder: (_) => ChatScreen(
-                                roomCode: room.roomCode,
-                                identity: room.identity,
+                      itemBuilder: (context, index) {
+                        final room = rooms[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          leading: CircleAvatar(
+                            radius: 22,
+                            backgroundColor: colors.surface,
+                            child: Text(
+                              room.displayName.isNotEmpty
+                                  ? room.displayName[0]
+                                  : '?',
+                              style: TextStyle(
+                                color: colors.accent,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
+                          ),
+                          title: Text(
+                            'Room #${room.roomCode}',
+                            style: AppTextStyles.headerTitle(
+                              colors,
+                            ).copyWith(fontSize: 16),
+                          ),
+                          subtitle: Text(
+                            'You are ${room.displayName}',
+                            style: AppTextStyles.subtitle(
+                              colors,
+                            ).copyWith(fontSize: 13),
+                          ),
+                          trailing: Text(
+                            '${formatDateSeparator(room.lastVisitedAt)}\n${formatMessageTime(room.lastVisitedAt)}',
+                            textAlign: TextAlign.right,
+                            style: AppTextStyles.timestamp(colors),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              AppPageRoute(
+                                builder:
+                                    (_) => ChatScreen(
+                                      roomCode: room.roomCode,
+                                      identity: room.identity,
+                                    ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
       ),
     );
   }

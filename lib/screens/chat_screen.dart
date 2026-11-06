@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import '../app/theme.dart';
@@ -61,12 +62,17 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+
     _chatService = context.read<ChatService>();
     _roomService = context.read<RoomService>();
     _activeRoomTracker = context.read<ActiveRoomTracker>();
     _uid = context.read<AuthService>().uid;
 
-    _activeRoomTracker.setActive(widget.roomCode);
+    // Update provider after the current frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _activeRoomTracker.setActive(widget.roomCode);
+    });
 
     final uid = _uid;
     if (uid != null) {
@@ -76,16 +82,19 @@ class _ChatScreenState extends State<ChatScreen> {
         displayName: widget.identity.displayName,
       );
     }
-    _subscription = _chatService
-        .latestMessagesStream(widget.roomCode)
-        .listen((docs) {
-          if (!mounted) return;
-          setState(() {
-            for (final doc in docs) {
-              _docsById[doc.id] = doc;
-            }
-          });
-        });
+
+    _subscription = _chatService.latestMessagesStream(widget.roomCode).listen((
+      docs,
+    ) {
+      if (!mounted) return;
+
+      setState(() {
+        for (final doc in docs) {
+          _docsById[doc.id] = doc;
+        }
+      });
+    });
+
     _scrollController.addListener(_onScroll);
   }
 
@@ -190,9 +199,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final link = 'rumour://room/${widget.roomCode}';
     await Clipboard.setData(ClipboardData(text: link));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Room link copied: $link')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Room link copied: $link')));
   }
 
   List<_ChatListItem> _buildItems(List<MessageDoc> descDocs) {
@@ -224,9 +233,22 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: colors.textPrimary),
-          onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+        leading: InkWell(
+          child: Container(
+            margin: EdgeInsets.all(7),
+
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xff1F2937),
+            ),
+            padding: EdgeInsets.all(2),
+            child: Icon(
+              Icons.chevron_left,
+              color: colors.textPrimary,
+              size: 30,
+            ),
+          ),
+          onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
         ),
         title: Column(
           children: [
@@ -275,50 +297,52 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             Expanded(
-              child: items.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No messages yet. Say hi!',
-                        style: AppTextStyles.subtitle(colors),
-                      ),
-                    )
-                  : ListView.builder(
-                      reverse: true,
-                      controller: _scrollController,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      itemCount: items.length + (_loadingMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (_loadingMore && index == items.length) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colors.accent,
+              child:
+                  items.isEmpty
+                      ? Center(
+                        child: Text(
+                          'No messages yet. Say hi!',
+                          style: AppTextStyles.subtitle(colors),
+                        ),
+                      )
+                      : ListView.builder(
+                        reverse: true,
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        itemCount: items.length + (_loadingMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (_loadingMore && index == items.length) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colors.accent,
+                                  ),
                                 ),
                               ),
-                            ),
+                            );
+                          }
+                          final item = items[index];
+                          if (item is _SeparatorItem) {
+                            return DateSeparator(label: item.label);
+                          }
+                          final message = (item as _MessageItem).message;
+                          final isOwn = message.senderUid == _uid;
+                          return ChatBubble(
+                            key: ValueKey(message.id),
+                            message: message,
+                            isOwnMessage: isOwn,
+                            senderHandle:
+                                isOwn
+                                    ? 'You'
+                                    : '@${message.senderName.replaceAll(' ', '')}',
                           );
-                        }
-                        final item = items[index];
-                        if (item is _SeparatorItem) {
-                          return DateSeparator(label: item.label);
-                        }
-                        final message = (item as _MessageItem).message;
-                        final isOwn = message.senderUid == _uid;
-                        return ChatBubble(
-                          key: ValueKey(message.id),
-                          message: message,
-                          isOwnMessage: isOwn,
-                          senderHandle: isOwn
-                              ? 'You'
-                              : '@${message.senderName.replaceAll(' ', '')}',
-                        );
-                      },
-                    ),
+                        },
+                      ),
             ),
             if (_uid != null)
               StreamBuilder<List<String>>(
@@ -346,7 +370,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: colors.surfaceVariant,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: TextField(
@@ -376,7 +400,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: colors.accent,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.send_rounded, color: colors.onAccent, size: 20),
+              padding: EdgeInsets.all(12.5),
+              child: SvgPicture.asset("assets/svg/send_icon.svg", )
+              // child: Image.asset("assets/icon/send_icon.png", )
             ),
           ),
         ],

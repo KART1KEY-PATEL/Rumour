@@ -39,7 +39,9 @@ class _IdentityRevealScreenState extends State<IdentityRevealScreen>
   late final Animation<double> _revealScale = Tween<double>(
     begin: 0.9,
     end: 1,
-  ).animate(CurvedAnimation(parent: _revealController, curve: Curves.easeOutBack));
+  ).animate(
+    CurvedAnimation(parent: _revealController, curve: Curves.easeOutBack),
+  );
 
   @override
   void dispose() {
@@ -59,8 +61,11 @@ class _IdentityRevealScreenState extends State<IdentityRevealScreen>
       if (!mounted) return;
       await Navigator.of(context).pushReplacement(
         AppPageRoute(
-          builder: (_) =>
-              ChatScreen(roomCode: widget.roomCode, identity: widget.identity),
+          builder:
+              (_) => ChatScreen(
+                roomCode: widget.roomCode,
+                identity: widget.identity,
+              ),
         ),
       );
     } finally {
@@ -73,10 +78,24 @@ class _IdentityRevealScreenState extends State<IdentityRevealScreen>
     final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: colors.textPrimary),
-          onPressed: () => Navigator.of(context).maybePop(),
+        leading: InkWell(
+          child: Container(
+            margin: EdgeInsets.all(7),
+
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xff1F2937),
+            ),
+            padding: EdgeInsets.all(2),
+            child: Icon(
+              Icons.chevron_left,
+              color: colors.textPrimary,
+              size: 30,
+            ),
+          ),
+          onTap: () => Navigator.of(context).maybePop(),
         ),
+
         title: Column(
           children: [
             Text(
@@ -129,8 +148,23 @@ class _IdentityRevealScreenState extends State<IdentityRevealScreen>
                         const SizedBox(height: 12),
                         Text(
                           widget.identity.displayName,
-                          style: AppTextStyles.identityName(colors),
                           textAlign: TextAlign.center,
+                          style: AppTextStyles.identityName(colors).copyWith(
+                            foreground:
+                                Paint()
+                                  ..shader = const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFDE047),
+                                      Color(0xFFA3E635),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ).createShader(
+                                    const Rect.fromLTWH(0, 0, 300, 100),
+                                  ),
+                                  fontSize: 50, fontWeight: FontWeight.w900,
+                          ),
+                          
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -143,7 +177,8 @@ class _IdentityRevealScreenState extends State<IdentityRevealScreen>
                   ),
                 ),
               ),
-              const Spacer(flex: 3),
+              // const Spacer(flex: ),
+              SizedBox(height: 20),
               PillButton(
                 label: 'Acknowledge and continue',
                 isLoading: _continuing,

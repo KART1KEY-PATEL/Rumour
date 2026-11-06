@@ -1,14 +1,11 @@
+
 import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-/// "X is typing…" row with an animated 3-dot bounce, shown above the chat
-/// input bar while someone else in the room is typing.
 class TypingIndicator extends StatefulWidget {
   const TypingIndicator({super.key, required this.names});
 
-  /// Display names of everyone currently typing (already filtered to
-  /// exclude the current user and stale flags).
   final List<String> names;
 
   @override
@@ -17,10 +14,17 @@ class TypingIndicator extends StatefulWidget {
 
 class _TypingIndicatorState extends State<TypingIndicator>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  )..repeat();
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
 
   @override
   void dispose() {
@@ -30,16 +34,22 @@ class _TypingIndicatorState extends State<TypingIndicator>
 
   String get _label {
     if (widget.names.isEmpty) return '';
-    if (widget.names.length == 1) return '${widget.names.first} is typing';
+
+    if (widget.names.length == 1) {
+      return '${widget.names.first} is typing';
+    }
+
     if (widget.names.length == 2) {
       return '${widget.names[0]} and ${widget.names[1]} are typing';
     }
+
     return '${widget.names.length} people are typing';
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+
     return AnimatedSize(
       duration: const Duration(milliseconds: 180),
       alignment: Alignment.bottomCenter,
@@ -64,14 +74,21 @@ class _TypingIndicatorState extends State<TypingIndicator>
                       animation: _controller,
                       builder: (context, _) {
                         return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
                           children: List.generate(3, (i) {
-                            final t = (_controller.value - i * 0.2) % 1.0;
-                            final bounce = (t < 0.5)
+                            final t =
+                                (_controller.value - i * 0.2) % 1.0;
+
+                            final bounce = t < 0.5
                                 ? t * 2
                                 : (1 - t) * 2;
+
                             return Transform.translate(
-                              offset: Offset(0, -3 * bounce.clamp(0, 1)),
+                              offset: Offset(
+                                0,
+                                -3 * bounce.clamp(0, 1),
+                              ),
                               child: Container(
                                 width: 5,
                                 height: 5,

@@ -26,5 +26,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:921465975327:ios:ade49214c8fe5239d51b2a</string>
+	<key>DATABASE_URL</key>
+	<string>https://rumour-87574-default-rtdb.asia-southeast1.firebasedatabase.app</string>
 </dict>
 </plist>

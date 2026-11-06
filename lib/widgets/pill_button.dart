@@ -30,7 +30,7 @@ class PillButton extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: active ? colors.accent : colors.accent.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Center(
             child: isLoading

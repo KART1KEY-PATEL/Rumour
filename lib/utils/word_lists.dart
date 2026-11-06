@@ -1,5 +1,3 @@
-/// Curated word lists used to build "Adjective Animal" anonymous handles,
-/// e.g. "Brave Badger".
 const List<String> kAdjectives = [
   'Brave', 'Calm', 'Clever', 'Cosmic', 'Curious', 'Daring', 'Eager', 'Fuzzy',
   'Gentle', 'Happy', 'Jolly', 'Keen', 'Lively', 'Lucky', 'Mighty', 'Nimble',

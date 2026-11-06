@@ -25,8 +25,8 @@ void main() {
     });
 
     test('isValidRoomCode rejects ambiguous characters and wrong length', () {
-      expect(isValidRoomCode('ABC12'), isFalse); // too short
-      expect(isValidRoomCode('ABCDE0'), isFalse); // contains ambiguous 0
+      expect(isValidRoomCode('ABC12'), isFalse);
+      expect(isValidRoomCode('ABCDE0'), isFalse);
       expect(isValidRoomCode('ABCDEF'), isTrue);
     });
   });

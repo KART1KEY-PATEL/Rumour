@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,6 @@ class JoinRoomScreen extends StatefulWidget {
   const JoinRoomScreen({super.key, this.initialCode, this.autoSubmit = false});
 
   final String? initialCode;
-
   final bool autoSubmit;
 
   @override
@@ -24,18 +24,25 @@ class JoinRoomScreen extends StatefulWidget {
 }
 
 class _JoinRoomScreenState extends State<JoinRoomScreen> {
-  late final _controller = TextEditingController(
+  late final TextEditingController _controller = TextEditingController(
     text: widget.initialCode ?? '',
   );
+
   bool _submitting = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+
     final code = widget.initialCode;
+
     if (widget.autoSubmit && code != null && isValidRoomCode(code)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _join());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _join(code);
+        }
+      });
     }
   }
 
@@ -45,12 +52,17 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
     super.dispose();
   }
 
-  Future<void> _join() async {
-    final code = normalizeRoomCode(_controller.text);
+  Future<void> _join([String? enteredCode]) async {
+    final code = normalizeRoomCode(enteredCode ?? _controller.text);
+
     if (!isValidRoomCode(code)) {
-      setState(() => _error = 'Enter the full 6-character room code.');
+      setState(() {
+        _error = 'Enter the full 6-character room code.';
+      });
       return;
     }
+
+    if (_submitting) return;
 
     setState(() {
       _submitting = true;
@@ -65,58 +77,86 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
 
       final cached = await identityService.getCachedIdentity(code);
       final isFirstJoin = cached == null;
+
       final identity = cached ?? await identityService.createIdentity(code);
 
       if (!mounted) return;
 
-      if (isFirstJoin) {
-        await Navigator.of(context).pushReplacement(
-          AppPageRoute(
-            builder: (_) =>
-                IdentityRevealScreen(roomCode: code, identity: identity),
-          ),
-        );
-      } else {
-        await Navigator.of(context).pushReplacement(
-          AppPageRoute(
-            builder: (_) => ChatScreen(roomCode: code, identity: identity),
-          ),
-        );
-      }
-    } on RoomNotFoundException {
-      setState(
-        () => _error = 'Room not found. Check the code and try again.',
+      await Navigator.of(context).pushReplacement(
+        AppPageRoute(
+          builder:
+              (_) =>
+                  isFirstJoin
+                      ? IdentityRevealScreen(roomCode: code, identity: identity)
+                      : ChatScreen(roomCode: code, identity: identity),
+        ),
       );
-    } catch (_) {
-      setState(() => _error = 'Something went wrong. Please try again.');
+    } on RoomNotFoundException {
+      if (mounted) {
+        setState(() {
+          _error = 'Room not found. Check the code and try again.';
+        });
+      }
+    } catch (e) {
+      debugPrint('Join room error: $e');
+
+      if (mounted) {
+        setState(() {
+          _error = 'Something went wrong. Please try again.';
+        });
+      }
     } finally {
-      if (mounted) setState(() => _submitting = false);
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+
     final defaultPinTheme = PinTheme(
-      width: 44,
-      height: 52,
+      width: 35,
+      height: 55,
       textStyle: TextStyle(
         color: colors.textPrimary,
-        fontSize: 18,
+        fontSize: 21,
         fontWeight: FontWeight.w700,
       ),
+      // padding: EdgeInsets.symmetric(vertical: 30),
       decoration: BoxDecoration(
-        color: colors.surfaceVariant,
-        borderRadius: BorderRadius.circular(10),
+        border: Border(bottom: BorderSide(color: Color(0xffA1A1AA), width: 4)),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.accent, width: 4.5)),
       ),
     );
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: colors.textPrimary),
-          onPressed: () => Navigator.of(context).maybePop(),
+        leading: InkWell(
+          child: Container(
+            margin: EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xff1F2937),
+            ),
+            // padding: EdgeInsets.all(2),
+            child: Icon(
+              Icons.chevron_left,
+              color: colors.textPrimary,
+              size: 30,
+            ),
+          ),
+          onTap: () => Navigator.of(context).maybePop(),
         ),
+
         actions: const [ThemeToggleButton()],
       ),
       body: SafeArea(
@@ -126,6 +166,7 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 24),
+
               Center(
                 child: Container(
                   width: 88,
@@ -135,38 +176,71 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(20),
-                  child: Image.asset('assets/icon/logo.png', fit: BoxFit.contain),
+                  child: Image.asset(
+                    'assets/icon/logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
-              const SizedBox(height: 56),
+
+              const SizedBox(height: 100),
+
               Text(
                 'Join A Room',
                 style: AppTextStyles.title(colors),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 12),
+
               Text(
                 'Enter the code to join the anon chat room',
                 style: AppTextStyles.subtitle(colors),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
-              Center(
-                child: Pinput(
-                  length: kRoomCodeLength,
-                  controller: _controller,
-                  autofocus: widget.initialCode == null,
-                  defaultPinTheme: defaultPinTheme,
-                  focusedPinTheme: defaultPinTheme.copyWith(
-                    decoration: defaultPinTheme.decoration!.copyWith(
-                      border: Border.all(color: colors.accent, width: 1.5),
-                    ),
+
+              const SizedBox(height: 40),
+
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: Color(0xff27272A),
+                ),
+                padding: EdgeInsets.all(10),
+                child: Center(
+                  child: Pinput(
+                    length: kRoomCodeLength,
+                    controller: _controller,
+
+                    autofocus: widget.initialCode == null,
+
+                    defaultPinTheme: defaultPinTheme,
+                    focusedPinTheme: focusedPinTheme,
+                    submittedPinTheme: defaultPinTheme,
+
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.characters,
+
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                      UpperCaseTextFormatter(),
+                    ],
+
+                    enabled: !_submitting,
+
+                    onChanged: (_) {
+                      if (_error != null) {
+                        setState(() {
+                          _error = null;
+                        });
+                      }
+                    },
+
+                    onCompleted: (value) => _join(value),
                   ),
-                  submittedPinTheme: defaultPinTheme,
-                  textCapitalization: TextCapitalization.characters,
-                  onCompleted: (_) => _join(),
                 ),
               ),
+
               if (_error != null) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -175,16 +249,31 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
                   textAlign: TextAlign.center,
                 ),
               ],
+
               const SizedBox(height: 32),
-              PillButton(
-                label: 'Join Room',
-                isLoading: _submitting,
-                onPressed: _join,
-              ),
+
+              // PillButton(
+              //   label: 'Join Room',
+              //   isLoading: _submitting,
+              //   onPressed: _join,
+              // ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return newValue.copyWith(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }
